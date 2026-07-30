@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>NosTaleEmu.Services</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NosTaleEmu.Database\NosTaleEmu.Database.csproj" />
+    <ProjectReference Include="..\NosTaleEmu.Dto\NosTaleEmu.Dto.csproj" />
+  </ItemGroup>
+
+</Project>
