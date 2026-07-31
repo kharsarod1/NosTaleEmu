@@ -17,33 +17,15 @@ src/
   NosTaleEmu.WorldServer/
 ```
 
+## Cliente
+
+Esta fuente está destinada para la versión 3075 del cliente (2017). No tendrá soporte para versiones actuales del juego.
+
 ## Base de datos
 
 Solo es necesario tener un servidor **MySQL** en funcionamiento.
 
-Al iniciar el **LoginServer** por primera vez, la base de datos y las tablas necesarias se crearán automáticamente si no existen.
-
-Para crear una cuenta:
-
-```bash
-dotnet run --project src/NosTaleEmu.LoginServer -- create-account <usuario> <contraseña>
-```
-
-## Compilar
-
-```bash
-dotnet build NosTaleEmu.sln
-```
-
-## Ejecutar
-
-```bash
-# LoginServer
-dotnet run --project src/NosTaleEmu.LoginServer
-
-# WorldServer
-dotnet run --project src/NosTaleEmu.WorldServer
-```
+Al iniciar el **LoginServer** y **WorldServer** por primera vez, la base de datos y las tablas necesarias se crearán automáticamente si no existen.
 
 Puertos por defecto:
 
@@ -58,8 +40,16 @@ Este proyecto proporciona una base funcional sobre la que continuar el desarroll
 
 ## Donaciones
 
-Si este proyecto te resulta útil y quieres apoyar su desarrollo, puedes hacer una donación.
+Si quieres apoyar el desarrollo del proyecto, puedes hacer una donación.
 
 Las donaciones ayudan a dedicar más tiempo al proyecto, mantenerlo actualizado y seguir implementando nuevas características.
 
 **❤️ Gracias por apoyar el proyecto :)**
+
+## Aviso
+
+Gran parte del código está hecho por una IA para ahorrar tiempo, aún así el código es revisado.
+
+Las pruebas del código están bajo conocimientos de C#.
+
+Es importante aclarar esto porque la honestidad debe permanecer.
