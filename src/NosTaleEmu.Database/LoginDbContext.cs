@@ -26,7 +26,7 @@ public sealed class LoginDbContext : DbContext
 
             entity.Property(a => a.Password)
                 .HasColumnName("password")
-                .HasMaxLength(128) // SHA-512 en hex: 64 bytes -> 128 caracteres
+                .HasMaxLength(128)
                 .IsRequired();
         });
     }

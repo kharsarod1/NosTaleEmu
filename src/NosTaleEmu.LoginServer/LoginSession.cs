@@ -3,6 +3,7 @@ using NosTaleEmu.Core.Cryptography;
 using NosTaleEmu.Core.Networking;
 using NosTaleEmu.Database;
 using NosTaleEmu.Services.Account;
+using Serilog;
 
 namespace NosTaleEmu.LoginServer;
 
@@ -30,19 +31,18 @@ public sealed class LoginSession : ClientSessionBase
             return;
         }
 
-        Console.WriteLine($"[Login] << {packet}");
+        Log.Debug("<< {Packet}", packet);
 
-        // Formato esperado del cliente: NoS0575 <clientVersion> <username> <passwordHash> <extra...>
         string[] parts = packet.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
         if (parts.Length < 4 || parts[0] != "NoS0575")
         {
-            await SendAsync("failc 3"); // paquete no reconocido
+            await SendAsync("failc 3");
             return;
         }
 
         string username = parts[2];
-        string passwordHash = parts[3]; // SHA-512(password) en hex, tal cual lo manda el cliente
+        string passwordHash = parts[3];
 
         bool valid;
         try
@@ -51,26 +51,24 @@ public sealed class LoginSession : ClientSessionBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Login] Error consultando la base de datos: {ex.Message}");
-            await SendAsync("failc 2"); // error del servidor
+            Log.Error(ex, "Error consultando la base de datos al autenticar '{Username}'", username);
+            await SendAsync("failc 2");
             return;
         }
 
         if (!valid)
         {
-            await SendAsync("failc 1"); // credenciales inválidas o cuenta baneada
+            Log.Warning("Login fallido para '{Username}' (credenciales inválidas o cuenta baneada)", username);
+            await SendAsync("failc 1");
             return;
         }
 
         int sessionId = Random.Shared.Next(1, ushort.MaxValue);
         string channelList = WorldChannelListBuilder.Build(_channels);
 
-        // Respuesta de éxito: NsTeST <username> <sessionId> <lista de canales> -1:-1:-1:10000.10000.1
         await SendAsync($"NsTeST {username} {sessionId} {channelList}");
 
-        Console.WriteLine(channelList);
-
-        Console.WriteLine($"[Login] {username} autenticado, sessionId={sessionId}");
+        Log.Information("'{Username}' autenticado (sessionId={SessionId})", username, sessionId);
     }
 
     protected override void Dispose(bool disposing)

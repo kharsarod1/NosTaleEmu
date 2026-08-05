@@ -2,11 +2,6 @@ using System.Text;
 
 namespace NosTaleEmu.Core.Cryptography;
 
-/// <summary>
-/// Cifrado simétrico simple usado por el canal de autenticación.
-/// Cada byte se desplaza +15 al cifrar; al descifrar se revierte el
-/// desplazamiento y se aplica un XOR fijo (0xC3).
-/// </summary>
 public sealed class LoginCipher : IPacketCipher
 {
     private const byte Shift = 15;
@@ -42,9 +37,6 @@ public sealed class LoginCipher : IPacketCipher
 
             foreach (byte b in rawBytes)
             {
-                // (b - 15) mod 256, luego XOR 0xC3. Al trabajar en modulo 256
-                // ambos casos (b > 14 y b <= 14) de la versión original colapsan
-                // en una única expresión.
                 byte shifted = unchecked((byte)(b - Shift));
                 builder.Append((char)(shifted ^ XorMask));
             }
@@ -57,14 +49,6 @@ public sealed class LoginCipher : IPacketCipher
         }
     }
 
-    /// <summary>
-    /// Extrae la contraseña en claro de la ofuscación hexadecimal reversible
-    /// que usaban clientes NosTale antiguos. Los clientes actuales en cambio
-    /// mandan directamente SHA-512(password) en hex (128 caracteres) — eso NO
-    /// es reversible, así que si tu paquete trae un string de 128 hex chars,
-    /// no uses este método: compará el hash contra el hash guardado en tu
-    /// base de cuentas (ver LoginServer/Program.cs).
-    /// </summary>
     public static string DecodePassword(string obfuscatedPassword)
     {
         int offset = obfuscatedPassword.Length % 2 == 0 ? 3 : 4;

@@ -53,6 +53,8 @@ ALTER USER 'nostaleemu'@'%' IDENTIFIED BY 'tu_nueva_contraseña';
 
 El WorldServer también trae `"Rates"` en su `config.json` (ExpRate, DropRate, GoldRate, etc.) — se ajustan ahí directamente, sin tocar código.
 
+También trae `"DisplayLogs"` (true/false: muestra u oculta los logs de conexiones y paquetes) y `"EnableCommands"` (true/false: activa la consola interactiva de comandos). Con el server corriendo, escribí `help` en la consola para ver todos los comandos disponibles (crear cuentas, mandar paquetes a un jugador conectado, ver los rates actuales, apagar el server prolijamente, etc.). Si vas a usar la consola de comandos seguido, es buena idea poner `DisplayLogs` en `false` para que los logs de paquetes no se mezclen con lo que estás escribiendo.
+
 ## 4. Crear una cuenta de prueba
 
 No hace falta escribir SQL a mano — el LoginServer trae un modo de línea de comandos:

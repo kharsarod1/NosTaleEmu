@@ -4,10 +4,6 @@ public sealed class LoginServerSettings
 {
     public int Port { get; set; } = 4005;
 
-    /// <summary>
-    /// Cadena de conexión estándar de MySQL/MariaDB.
-    /// Cambiá Server, Uid y Pwd por los de tu instalación.
-    /// </summary>
     public string MySqlConnectionString { get; set; } =
         "Server=127.0.0.1;Port=3306;Database=login;Uid=nostaleemu;Pwd=changeme;";
 

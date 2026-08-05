@@ -3,8 +3,6 @@ using NosTaleEmu.Core.Enums.World;
 
 namespace NosTaleEmu.Database.Entities.World;
 
-// TODO: esto es un punto de partida mínimo; sumá los campos reales
-// (clase, mapa, posición, stats, etc.) a medida que los necesites.
 public sealed class CharacterEntity
 {
     public long Id { get; set; }

@@ -3,11 +3,6 @@ using System.Text.Json.Serialization;
 
 namespace NosTaleEmu.Core.Configuration;
 
-/// <summary>
-/// Carga un archivo de configuración JSON junto al ejecutable. Si no existe,
-/// lo crea con los valores por defecto para que cualquiera pueda arrancar el
-/// servidor sin tener que escribir configuración a mano primero.
-/// </summary>
 public static class JsonConfigLoader
 {
     private static readonly JsonSerializerOptions Options = new()

@@ -1,5 +1,6 @@
 using System.Net.Sockets;
 using NosTaleEmu.Core.Cryptography;
+using NosTaleEmu.Core.Logging;
 using NosTaleEmu.Core.Networking;
 using NosTaleEmu.Database;
 using NosTaleEmu.Services.Character;
@@ -9,37 +10,37 @@ namespace NosTaleEmu.WorldServer;
 
 public sealed class WorldSession : ClientSessionBase
 {
-    // Un solo registro compartido por todas las sesiones: los handlers son
-    // sin estado, no hace falta uno por conexión.
     private static readonly WorldPacketHandlerRegistry HandlerRegistry = new();
 
     private readonly WorldCipher _worldCipher;
     private readonly WorldDbContext _dbContext;
 
-    /// <summary>
-    /// El primer paquete que manda el cliente va cifrado con el esquema de
-    /// "parámetro especial" (DecryptCustomParameter), no con el Decrypt
-    /// normal. Trae el sessionId real asignado por el LoginServer; recién
-    /// ahí arranca el resto del protocolo.
-    /// </summary>
     private bool _handshakeCompleted;
-
     private int _lastKeepAliveId = -1;
+    private string? _characterName;
 
-    public string? CharacterName { get; private set; }
-
-    /// <summary>Personajes de la cuenta autenticada, en esta conexión.</summary>
     public CharacterService Characters { get; }
 
-    /// <summary>
-    /// Id de la cuenta dueña de esta sesión. TODO: hoy no se popula todavía
-    /// — el WorldServer solo recibe el sessionId en el handshake, no el
-    /// accountId. Hace falta una forma de resolver sessionId -> accountId
-    /// (ej: que el LoginServer guarde esa relación en una tabla compartida,
-    /// o que el propio handshake mande el accountId). Hasta que eso esté,
-    /// esto queda en 0.
-    /// </summary>
     public long AccountId { get; set; }
+
+    public string? CharacterName
+    {
+        get => _characterName;
+        set
+        {
+            if (_characterName is not null)
+            {
+                WorldSessionRegistry.Unregister(_characterName);
+            }
+
+            _characterName = value;
+
+            if (_characterName is not null)
+            {
+                WorldSessionRegistry.Register(_characterName, this);
+            }
+        }
+    }
 
     public WorldSession(TcpClient tcpClient, WorldDbContext dbContext)
         : base(tcpClient, new WorldCipher(), sessionId: 0)
@@ -72,8 +73,6 @@ public sealed class WorldSession : ClientSessionBase
             return;
         }
 
-        // Formato: "<keepAliveId> <header> <arg1> <arg2>..."
-        // '^' representa un espacio dentro de un argumento (ej: mensajes de chat).
         string readable = packet.Replace('^', ' ');
         string[] parts = readable.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
@@ -84,12 +83,11 @@ public sealed class WorldSession : ClientSessionBase
 
         _lastKeepAliveId = keepAliveId;
 
-        // Mensajería rápida (/, :, ;) usa un solo carácter como header.
         string header = parts[1] is [var shortcut, ..] && shortcut is '/' or ':' or ';'
             ? shortcut.ToString()
             : parts[1].Replace("#", "");
 
-        Console.WriteLine($"[World] << {readable}");
+        GameLogger.Traffic.Debug("<< {Packet}", readable);
 
         if (HandlerRegistry.TryGetHandler(header, out IWorldPacketHandler? handler))
         {
@@ -97,13 +95,12 @@ public sealed class WorldSession : ClientSessionBase
         }
         else
         {
-            Console.WriteLine($"[World] Header no manejado: {header}");
+            GameLogger.Traffic.Debug("Header no manejado: {Header}", header);
         }
     }
 
     private async Task CompleteHandshakeAsync(string customParameter)
     {
-        // Formato esperado tras DecryptCustomParameter: "<keepAliveId> <sessionId>[\...resto]"
         string[] parts = customParameter.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
         int keepAliveId = 0;
@@ -115,7 +112,7 @@ public sealed class WorldSession : ClientSessionBase
 
         if (!ok)
         {
-            Console.WriteLine("[World] Handshake inválido, cerrando conexión.");
+            GameLogger.Traffic.Warning("Handshake inválido, cerrando conexión");
             Dispose();
             return;
         }
@@ -124,7 +121,7 @@ public sealed class WorldSession : ClientSessionBase
         SessionId = sessionId;
         _handshakeCompleted = true;
 
-        Console.WriteLine($"[World] Handshake OK, sessionId={SessionId}");
+        GameLogger.Traffic.Information("Handshake OK (sessionId={SessionId})", SessionId);
 
         await SendAsync("OK");
     }
@@ -133,6 +130,11 @@ public sealed class WorldSession : ClientSessionBase
     {
         if (disposing)
         {
+            if (_characterName is not null)
+            {
+                WorldSessionRegistry.Unregister(_characterName);
+            }
+
             _dbContext.Dispose();
         }
 

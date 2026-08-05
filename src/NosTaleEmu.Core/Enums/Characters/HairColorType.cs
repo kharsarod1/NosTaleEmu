@@ -1,6 +1,5 @@
 namespace NosTaleEmu.Core.Enums.Characters;
 
-// Valores placeholder (0-9) — ajustá según lo que mande el cliente real.
 public enum HairColorType : byte
 {
     Mahogany = 0,

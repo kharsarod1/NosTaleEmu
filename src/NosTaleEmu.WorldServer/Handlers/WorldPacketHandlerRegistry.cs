@@ -2,12 +2,6 @@ using System.Reflection;
 
 namespace NosTaleEmu.WorldServer.Handlers;
 
-/// <summary>
-/// Escanea el ensamblado en busca de clases que implementen
-/// <see cref="IWorldPacketHandler"/> y arma el mapa header -> handler.
-/// Un handler nuevo se detecta solo con crear la clase, sin registrarlo a
-/// mano en ningún lado.
-/// </summary>
 public sealed class WorldPacketHandlerRegistry
 {
     private readonly Dictionary<string, IWorldPacketHandler> _handlers;

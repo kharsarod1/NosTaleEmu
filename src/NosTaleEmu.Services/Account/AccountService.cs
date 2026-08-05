@@ -23,11 +23,6 @@ public sealed class AccountService
         return entity is null ? null : ToDto(entity);
     }
 
-    /// <summary>
-    /// Valida usuario + hash de contraseña (SHA-512 hex) y que la cuenta no
-    /// esté baneada. Toda la lógica de "¿puede entrar o no?" vive acá, no en
-    /// el LoginSession.
-    /// </summary>
     public async Task<bool> ValidateCredentialsAsync(string username, string passwordHashHex, CancellationToken cancellationToken = default)
     {
         AccountDto? account = await FindByUsernameAsync(username, cancellationToken);
@@ -37,7 +32,6 @@ public sealed class AccountService
             && string.Equals(account.Password, passwordHashHex, StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <returns>true si se creó la cuenta; false si el usuario ya existía.</returns>
     public async Task<bool> CreateAccountAsync(string username, string passwordHashHex, CancellationToken cancellationToken = default)
     {
         bool exists = await _context.Accounts.AnyAsync(a => a.Username == username, cancellationToken);

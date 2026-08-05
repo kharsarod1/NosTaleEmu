@@ -3,10 +3,6 @@ using NosTaleEmu.Core.Cryptography;
 
 namespace NosTaleEmu.Core.Networking;
 
-/// <summary>
-/// Maneja la lectura/escritura cruda de un socket y delega el
-/// procesamiento de cada paquete ya descifrado al servidor concreto.
-/// </summary>
 public abstract class ClientSessionBase : IDisposable
 {
     protected readonly TcpClient TcpClient;
@@ -49,11 +45,9 @@ public abstract class ClientSessionBase : IDisposable
         }
         catch (IOException)
         {
-            // Conexión cerrada por el cliente.
         }
         catch (OperationCanceledException)
         {
-            // Servidor deteniéndose.
         }
         finally
         {
@@ -63,20 +57,8 @@ public abstract class ClientSessionBase : IDisposable
 
     protected abstract Task OnPacketReceivedAsync(string packet, CancellationToken cancellationToken);
 
-    /// <summary>
-    /// Convierte los bytes crudos leídos del socket en texto descifrado.
-    /// Por defecto usa <see cref="Cipher"/> con el <see cref="SessionId"/>
-    /// actual, pero se puede sobreescribir (ej: WorldServer necesita usar el
-    /// descifrado de "parámetro especial" para el primer paquete, antes de
-    /// que el handshake establezca el sessionId real).
-    /// </summary>
     protected virtual string DecryptIncoming(byte[] raw) => Cipher.Decrypt(raw, SessionId);
 
-    /// <summary>
-    /// Separa el texto ya descifrado en paquetes individuales. Un solo
-    /// receive de socket puede traer varios paquetes pegados (ej: World los
-    /// separa con 0xFF); por defecto se asume uno por línea.
-    /// </summary>
     protected virtual IEnumerable<string> SplitPackets(string decrypted) =>
         decrypted.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
@@ -97,10 +79,6 @@ public abstract class ClientSessionBase : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>
-    /// Sobreescribí esto para liberar recursos propios de la subclase (ej:
-    /// LoginSession libera su DbContext acá). Llamá siempre a base.Dispose(disposing).
-    /// </summary>
     protected virtual void Dispose(bool disposing)
     {
         if (!disposing)

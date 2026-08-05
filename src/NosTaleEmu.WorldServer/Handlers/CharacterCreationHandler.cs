@@ -1,4 +1,5 @@
 using NosTaleEmu.Core.Enums.Characters;
+using NosTaleEmu.Core.Logging;
 using NosTaleEmu.Dto.Character;
 
 namespace NosTaleEmu.WorldServer.Handlers;
@@ -11,7 +12,7 @@ public sealed class CharacterCreationHandler : IWorldPacketHandler
     {
         if (args.Length < 5)
         {
-            Console.WriteLine("[World] CHAR_NEW con muy pocos argumentos, se ignora.");
+            GameLogger.Traffic.Warning("CHAR_NEW con muy pocos argumentos");
             return;
         }
 
@@ -26,7 +27,7 @@ public sealed class CharacterCreationHandler : IWorldPacketHandler
 
         if (!parsedOk || string.IsNullOrWhiteSpace(name))
         {
-            Console.WriteLine("[World] CHAR_NEW con argumentos inválidos, se ignora.");
+            GameLogger.Traffic.Warning("CHAR_NEW con argumentos inválidos");
             return;
         }
 
@@ -38,23 +39,24 @@ public sealed class CharacterCreationHandler : IWorldPacketHandler
             Gender = (GenderType)genderRaw,
             Hair = (HairStyleType)hairStyleRaw,
             HairColor = (HairColorType)hairColorRaw,
-            Class = ClassType.Adventurer,
             Level = 1,
             MapId = 1,
             X = 79,
-            Y = 116
+            Y = 117
         };
 
         CharacterDto? created = await session.Characters.CreateCharacterAsync(newCharacter, cancellationToken);
 
         if (created is null)
         {
-            // Nombre ya en uso.
             await session.SendAsync("info Ese nombre ya está en uso.");
             return;
         }
 
-        Console.WriteLine($"[World] Personaje '{created.Name}' creado (id={created.Id}, accountId={created.AccountId}).");
+        session.CharacterName = created.Name;
+
+        GameLogger.Traffic.Information("Personaje '{Character}' creado (id={Id}, accountId={AccountId})", created.Name, created.Id, created.AccountId);
+
         await session.SendAsync("OK");
     }
 }

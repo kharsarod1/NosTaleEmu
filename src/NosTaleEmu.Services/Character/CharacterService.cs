@@ -42,7 +42,6 @@ public sealed class CharacterService
         return entities.Select(ToDto).ToList();
     }
 
-    // FindBySlotAsync es un método que busca un personaje por su ID de cuenta y el número de slot. Devuelve el personaje encontrado o null si no existe.
     public async Task<CharacterDto?> FindBySlotAsync(long accountId, byte slot, CancellationToken cancellationToken = default)
     {
         CharacterEntity? entity = await _context.Characters
@@ -51,7 +50,6 @@ public sealed class CharacterService
         return entity is null ? null : ToDto(entity);
     }
 
-    /// <returns>El personaje creado, o null si ya existía uno con ese nombre.</returns>
     public async Task<CharacterDto?> CreateCharacterAsync(CharacterDto character, CancellationToken cancellationToken = default)
     {
         bool nameTaken = await _context.Characters.AnyAsync(c => c.Name == character.Name, cancellationToken);
@@ -93,7 +91,6 @@ public sealed class CharacterService
         return ToDto(entity);
     }
 
-    /// <returns>true si se borró; false si no existía.</returns>
     public async Task<bool> DeleteCharacterAsync(long id, CancellationToken cancellationToken = default)
     {
         CharacterEntity? entity = await _context.Characters

@@ -2,17 +2,11 @@ using System.Text;
 
 namespace NosTaleEmu.Core.Cryptography;
 
-/// <summary>
-/// Cifrado usado por el canal de juego. Combina un desplazamiento dependiente
-/// de la sesión con una codificación tipo RLE por segmentos (separados por 0xFF).
-/// </summary>
 public sealed class WorldCipher : IPacketCipher
 {
     private const int ChunkSize = 0x7E;
     private const byte SegmentEnd = 0xFF;
 
-    // Tabla de símbolos usada para des-empaquetar los "nibbles" de los
-    // segmentos numéricos (fechas, cantidades, coordenadas, etc.).
     private static readonly char[] NibbleSymbols =
     {
         ' ', '-', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'n'
@@ -40,22 +34,12 @@ public sealed class WorldCipher : IPacketCipher
         return output;
     }
 
-    /// <summary>
-    /// Descifra el buffer recibido del socket. El resultado puede contener
-    /// varios paquetes del juego pegados en un mismo string, separados por
-    /// (char)0xFF — el llamador (ver <see cref="Networking.ClientSessionBase"/>)
-    /// es responsable de partirlos antes de procesarlos uno por uno.
-    /// </summary>
     public string Decrypt(byte[] rawBytes, int sessionId = 0)
     {
         string shifted = ApplySessionShift(rawBytes, sessionId);
         return DecodeSegments(shifted);
     }
 
-    /// <summary>
-    /// Aplica el desplazamiento (suma/resta + XOR opcional) determinado por
-    /// los bits altos del identificador de sesión.
-    /// </summary>
     private static string ApplySessionShift(byte[] rawBytes, int sessionId)
     {
         byte key = unchecked((byte)((sessionId & 0xFF) + 0x40));
@@ -96,13 +80,6 @@ public sealed class WorldCipher : IPacketCipher
         return result.ToString();
     }
 
-    /// <summary>
-    /// Decodifica un único segmento crudo (sin el desplazamiento de sesión),
-    /// es decir, la parte de la codificación tipo RLE que empaqueta texto
-    /// literal y símbolos numéricos por nibble. Útil cuando ya tenés el
-    /// segmento aislado (por ejemplo, un parámetro suelto de un paquete) y
-    /// no necesitás pasar por <see cref="Decrypt"/> completo.
-    /// </summary>
     public static string DecryptSegment(string segment)
     {
         var decoded = new List<byte>(segment.Length);
@@ -114,7 +91,6 @@ public sealed class WorldCipher : IPacketCipher
 
             if (marker <= 0x7A)
             {
-                // Bloque "literal": los siguientes <marker> bytes van complementados con XOR 0xFF.
                 int literalLength = marker;
                 for (int i = 0; i < literalLength; i++)
                 {
@@ -125,7 +101,6 @@ public sealed class WorldCipher : IPacketCipher
             }
             else
             {
-                // Bloque "empaquetado": cada byte contiene dos símbolos (nibble alto/bajo).
                 int symbolsToDecode = marker & 0x7F;
                 int symbolsDecoded = 0;
 

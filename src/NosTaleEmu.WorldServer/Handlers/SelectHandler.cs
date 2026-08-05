@@ -23,5 +23,7 @@ public sealed class SelectHandler : IWorldPacketHandler
             $" {(byte)character.Gender} {(byte)character.Hair} {(byte)character.HairColor} {(byte)character.Class} 1 0 0 0 0 0 0");
 
         await session.SendAsync($"at {character.Id} {character.MapId} {character.X} {character.Y} 2 0 1 -1");
+
+        WorldSessionRegistry.Register(session.CharacterName, session);
     }
 }
