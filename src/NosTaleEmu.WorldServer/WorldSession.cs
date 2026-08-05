@@ -1,6 +1,8 @@
 using System.Net.Sockets;
 using NosTaleEmu.Core.Cryptography;
 using NosTaleEmu.Core.Networking;
+using NosTaleEmu.Database;
+using NosTaleEmu.Services.Character;
 using NosTaleEmu.WorldServer.Handlers;
 
 namespace NosTaleEmu.WorldServer;
@@ -12,6 +14,7 @@ public sealed class WorldSession : ClientSessionBase
     private static readonly WorldPacketHandlerRegistry HandlerRegistry = new();
 
     private readonly WorldCipher _worldCipher;
+    private readonly WorldDbContext _dbContext;
 
     /// <summary>
     /// El primer paquete que manda el cliente va cifrado con el esquema de
@@ -25,9 +28,25 @@ public sealed class WorldSession : ClientSessionBase
 
     public string? CharacterName { get; private set; }
 
-    public WorldSession(TcpClient tcpClient) : base(tcpClient, new WorldCipher(), sessionId: 0)
+    /// <summary>Personajes de la cuenta autenticada, en esta conexión.</summary>
+    public CharacterService Characters { get; }
+
+    /// <summary>
+    /// Id de la cuenta dueña de esta sesión. TODO: hoy no se popula todavía
+    /// — el WorldServer solo recibe el sessionId en el handshake, no el
+    /// accountId. Hace falta una forma de resolver sessionId -> accountId
+    /// (ej: que el LoginServer guarde esa relación en una tabla compartida,
+    /// o que el propio handshake mande el accountId). Hasta que eso esté,
+    /// esto queda en 0.
+    /// </summary>
+    public long AccountId { get; set; }
+
+    public WorldSession(TcpClient tcpClient, WorldDbContext dbContext)
+        : base(tcpClient, new WorldCipher(), sessionId: 0)
     {
         _worldCipher = (WorldCipher)Cipher;
+        _dbContext = dbContext;
+        Characters = new CharacterService(dbContext);
     }
 
     protected override string DecryptIncoming(byte[] raw) =>
@@ -108,5 +127,15 @@ public sealed class WorldSession : ClientSessionBase
         Console.WriteLine($"[World] Handshake OK, sessionId={SessionId}");
 
         await SendAsync("OK");
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _dbContext.Dispose();
+        }
+
+        base.Dispose(disposing);
     }
 }

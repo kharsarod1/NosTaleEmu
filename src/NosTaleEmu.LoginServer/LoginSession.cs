@@ -37,7 +37,7 @@ public sealed class LoginSession : ClientSessionBase
 
         if (parts.Length < 4 || parts[0] != "NoS0575")
         {
-            await SendAsync("FAILC 3"); // paquete no reconocido
+            await SendAsync("failc 3"); // paquete no reconocido
             return;
         }
 
@@ -52,13 +52,13 @@ public sealed class LoginSession : ClientSessionBase
         catch (Exception ex)
         {
             Console.WriteLine($"[Login] Error consultando la base de datos: {ex.Message}");
-            await SendAsync("FAILC 2"); // error del servidor
+            await SendAsync("failc 2"); // error del servidor
             return;
         }
 
         if (!valid)
         {
-            await SendAsync("FAILC 1"); // credenciales inválidas o cuenta baneada
+            await SendAsync("failc 1"); // credenciales inválidas o cuenta baneada
             return;
         }
 
@@ -67,6 +67,8 @@ public sealed class LoginSession : ClientSessionBase
 
         // Respuesta de éxito: NsTeST <username> <sessionId> <lista de canales> -1:-1:-1:10000.10000.1
         await SendAsync($"NsTeST {username} {sessionId} {channelList}");
+
+        Console.WriteLine(channelList);
 
         Console.WriteLine($"[Login] {username} autenticado, sessionId={sessionId}");
     }

@@ -7,4 +7,8 @@
     <RootNamespace>NosTaleEmu.Dto</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\NosTaleEmu.Core\NosTaleEmu.Core.csproj" />
+  </ItemGroup>
+
 </Project>

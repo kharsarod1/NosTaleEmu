@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\NosTaleEmu.Core\NosTaleEmu.Core.csproj" />
     <ProjectReference Include="..\NosTaleEmu.Database\NosTaleEmu.Database.csproj" />
+    <ProjectReference Include="..\NosTaleEmu.Services\NosTaleEmu.Services.csproj" />
   </ItemGroup>
 
   <ItemGroup>

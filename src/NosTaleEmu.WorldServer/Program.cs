@@ -12,7 +12,7 @@ WorldServerSettings settings = JsonConfigLoader.LoadOrCreate(ConfigPath, new Wor
 Console.WriteLine("[WorldServer] Verificando base de datos...");
 WorldDbContextFactory.EnsureDatabaseReady(settings.MySqlConnectionString);
 Console.WriteLine("[WorldServer] Base de datos lista.");
-Console.WriteLine($"[WorldServer] Rates -> Exp x{settings.Rates.ExpRate} | Drop x{settings.Rates.DropRate} | Gold x{settings.Rates.GoldRate}.");
+Console.WriteLine($"[WorldServer] Rates -> Exp x{settings.Rates.ExpRate} | Drop x{settings.Rates.DropRate} | Gold x{settings.Rates.GoldRate}");
 
 var listener = new TcpListener(IPAddress.Any, settings.Port);
 listener.Start();
@@ -40,7 +40,11 @@ while (!cts.IsCancellationRequested)
 
     Console.WriteLine($"[WorldServer] Nueva conexión: {client.Client.RemoteEndPoint}");
 
-    var session = new WorldSession(client);
+    // Un DbContext por sesión: EF Core no es thread-safe para compartir uno
+    // solo entre conexiones concurrentes. WorldSession se hace cargo de
+    // liberarlo cuando la conexión se cierra.
+    WorldDbContext sessionDbContext = WorldDbContextFactory.Create(settings.MySqlConnectionString);
+    var session = new WorldSession(client, sessionDbContext);
     _ = session.RunAsync(cts.Token);
 }
 
